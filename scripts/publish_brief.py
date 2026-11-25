@@ -5,6 +5,8 @@
 바뀐 게 없으면 아무것도 출력하지 않고 끝난다.
 """
 
+from __future__ import annotations
+
 import re
 import subprocess
 import sys
