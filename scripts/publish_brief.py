@@ -49,7 +49,7 @@ def to_markdown(body: str) -> tuple[str, str]:
 
 def build_post(date: str, body: str) -> str:
     md, desc = to_markdown(body)
-    desc = desc.replace('"', "'")
+    desc = desc.replace('"', "'").replace("**", "")
     return (
         "---\n"
         f'title: "AI & Security 브리핑 {date.replace("-", ".")}"\n'
