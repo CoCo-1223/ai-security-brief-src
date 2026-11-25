@@ -374,6 +374,28 @@ function init() {
 /* Load settings when entering the site */
 init();
 
+/* Render ```mermaid diagrams (converted to <pre class="mermaid"> by remark-mermaid) */
+async function renderMermaid() {
+	const nodes = document.querySelectorAll<HTMLElement>('pre.mermaid:not([data-processed])')
+	if (nodes.length === 0) return
+	const { default: mermaid } = await import('mermaid')
+	mermaid.initialize({
+		startOnLoad: false,
+		theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+		suppressErrorRendering: true,
+	})
+	try {
+		await mermaid.run({ nodes: Array.from(nodes) })
+	} catch (e) {
+		console.warn('mermaid render failed', e)
+	}
+	// 문법 오류로 그리지 못한 다이어그램은 빈 상자로 남지 않게 숨긴다
+	nodes.forEach((n) => {
+		if (!n.querySelector('svg')) n.style.display = 'none'
+	})
+}
+renderMermaid();
+
 const setup = () => {
 	// TODO: temp solution to change the height of the banner
 /*
@@ -432,6 +454,7 @@ const setup = () => {
 		if (heightExtend) {
 			heightExtend.classList.remove('hidden')
 		}
+		renderMermaid()
 	});
 	window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {
 		setTimeout(() => {

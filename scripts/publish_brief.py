@@ -66,6 +66,39 @@ def build_post(date: str, body: str) -> str:
     )
 
 
+GLOSSARY = REPO / "src" / "content" / "spec" / "glossary.md"
+TERM = re.compile(r"^>\s*-\s*\*\*(.+?)\*\*\s*[:：]\s*(.+)$")
+
+
+def build_glossary() -> str:
+    """모든 글의 [!TIP] 용어 풀이 블록에서 `> - **용어**: 설명` 줄을 모아 용어 사전을 만든다."""
+    terms: dict[str, list] = {}  # 소문자 용어 -> [용어, 첫 설명, 등장 날짜들]
+    for post in sorted(POSTS.glob("brief-*.md")):
+        date = post.stem[len("brief-"):]
+        in_tip = False
+        for line in post.read_text(encoding="utf-8").splitlines():
+            s = line.strip()
+            if s.startswith("> [!TIP]"):
+                in_tip = True
+                continue
+            if in_tip and not s.startswith(">"):
+                in_tip = False
+            m = TERM.match(s) if in_tip else None
+            if m:
+                term, desc = m.group(1).strip(), m.group(2).strip()
+                entry = terms.setdefault(term.lower(), [term, desc, []])
+                if date not in entry[2]:
+                    entry[2].append(date)
+
+    lines = ["# 용어 사전", "", "브리핑에 나온 용어를 모아 둔 페이지입니다. 새 글이 올라오면 자동으로 갱신됩니다.", ""]
+    if not terms:
+        lines.append("아직 모인 용어가 없습니다.")
+    for term, desc, dates in (terms[k] for k in sorted(terms)):
+        links = ", ".join(f"[{d[5:].replace('-', '.')}](/ai-security-brief/posts/brief-{d}/)" for d in dates)
+        lines += [f"### {term}", "", desc, "", f"등장: {links}", ""]
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def git(*args: str) -> str:
     return subprocess.run(["git", "-C", str(REPO), *args], check=True, capture_output=True, text=True).stdout
 
@@ -84,6 +117,11 @@ def main() -> int:
         if not post.exists() or post.read_text(encoding="utf-8") != content:
             post.write_text(content, encoding="utf-8")
             changed.append(post)
+
+    glossary = build_glossary()
+    if not GLOSSARY.exists() or GLOSSARY.read_text(encoding="utf-8") != glossary:
+        GLOSSARY.write_text(glossary, encoding="utf-8")
+        changed.append(GLOSSARY)
 
     if not changed:
         return 0

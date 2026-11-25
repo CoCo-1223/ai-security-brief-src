@@ -45,6 +45,10 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Archive,
 		LinkPreset.About,
 		{
+			name: "용어 사전",
+			url: "/glossary/",
+		},
+		{
 			name: "GitHub",
 			url: "https://github.com/CoCo-1223/ai-security-brief", // Internal links should not include the base path, as it is automatically added
 			external: true, // Show an external link icon and will open in a new tab

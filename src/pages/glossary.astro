@@ -1,0 +1,24 @@
+---
+
+import { getEntry, render } from "astro:content";
+import Markdown from "@components/misc/Markdown.astro";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+
+// scripts/publish_brief.py가 생성하는 src/content/spec/glossary.md를 보여준다
+const glossary = await getEntry("spec", "glossary");
+
+if (!glossary) {
+	throw new Error("Glossary page content not found");
+}
+
+const { Content } = await render(glossary);
+---
+<MainGridLayout title="용어 사전" description="AI·보안 브리핑에 나온 용어 모음">
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+        <div class="card-base z-10 px-9 py-6 relative w-full ">
+            <Markdown class="mt-2">
+                <Content />
+            </Markdown>
+        </div>
+    </div>
+</MainGridLayout>
